@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+devhub.db
+.secret_key
+.venv/
+venv/
+.env
+*.db
+.DS_Store
