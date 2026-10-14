@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevHub — Build together. Ship in public.</title>
+  <meta name="description" content="A project hub for developers: add your projects, track them, and showcase your work.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-page="landing">
+  {% include '_nav.html' %}
+
+  <main>
+    <section class="hero">
+      <h1>Build together.<br><span class="accent">Ship in public.</span></h1>
+      <p class="tagline">DevHub is a project hub for developers — create an account, add the projects
+        you're working on, follow other devs, and show the community what you're building.</p>
+    </section>
+
+    <section id="global-stats" class="stats" aria-label="Community stats"></section>
+
+    <section id="auth-section" class="card auth-card">
+      <div class="tabs">
+        <button id="tab-login" class="tab active" type="button">Log in</button>
+        <button id="tab-signup" class="tab" type="button">Create account</button>
+      </div>
+      <form id="auth-form" autocomplete="on">
+        <label>Username
+          <input id="auth-username" name="username" type="text" placeholder="e.g. dev_queen" required minlength="3" maxlength="30">
+        </label>
+        <label>Password
+          <input id="auth-password" name="password" type="password" placeholder="••••••••" required minlength="6">
+        </label>
+        <button class="btn primary wide" type="submit">Log in</button>
+      </form>
+      <p class="muted small" id="auth-hint"></p>
+    </section>
+
+    <section class="showcase">
+      <div class="section-head">
+        <h2>Community showcase</h2>
+        <div class="filters">
+          <input id="search" type="search" placeholder="🔍 Search projects, tech, devs…  (press /)" autocomplete="off">
+          <select id="status-filter" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="idea">💡 Idea</option>
+            <option value="in_progress">🚧 In progress</option>
+            <option value="shipped">🚀 Shipped</option>
+          </select>
+          <select id="sort" aria-label="Sort projects">
+            <option value="newest">🕒 Newest</option>
+            <option value="oldest">⏳ Oldest</option>
+            <option value="likes">❤️ Most liked</option>
+            <option value="views">👁️ Most viewed</option>
+            <option value="name">🔤 A–Z</option>
+          </select>
+          <button id="follow-toggle" class="btn ghost small" type="button" title="Show only developers you follow">👥 Following</button>
+        </div>
+      </div>
+      <p id="active-tech" class="active-tech" hidden></p>
+      <div id="showcase-grid" class="grid"><p class="muted">Loading…</p></div>
+      <div class="load-more-wrap">
+        <button id="load-more" class="btn ghost" type="button" hidden>Load more</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>DevHub · Flask + SQLite + vanilla JS · <a href="/docs">API docs</a> · <a href="/feed.xml">RSS</a></span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
