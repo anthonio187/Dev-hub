@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your dashboard — DevHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-page="dashboard">
+  {% include '_nav.html' %}
+
+  <main>
+    <section class="dash-head">
+      <h1>Your dashboard</h1>
+      <div id="stats" class="stats"></div>
+    </section>
+
+    <section class="card form-card">
+      <h2 id="form-title">Add a project</h2>
+      <form id="project-form">
+        <div class="row">
+          <label>Project name *
+            <input id="p-name" type="text" required maxlength="100" placeholder="e.g. DevHub">
+          </label>
+          <label>Status
+            <select id="p-status">
+              <option value="idea">💡 Idea</option>
+              <option value="in_progress" selected>🚧 In progress</option>
+              <option value="shipped">🚀 Shipped</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label>Tech stack <span class="muted small">(comma separated)</span>
+            <input id="p-tech" type="text" maxlength="200" placeholder="e.g. Python, Flask, SQLite">
+          </label>
+          <label>Cover image URL <span class="muted small">(optional)</span>
+            <input id="p-cover" type="text" placeholder="https://…/screenshot.png">
+          </label>
+        </div>
+        <div class="row">
+          <label>Repository URL
+            <input id="p-repo" type="url" placeholder="https://github.com/you/project">
+          </label>
+          <label>Live URL
+            <input id="p-live" type="url" placeholder="https://yourproject.com">
+          </label>
+        </div>
+        <label>Progress: <span id="progress-val" class="accent">0%</span>
+          <input id="p-progress" type="range" min="0" max="100" step="5" value="0">
+        </label>
+        <label>Description
+          <textarea id="p-desc" rows="4" maxlength="2000" placeholder="What are you building? Markdown-lite works: **bold**, *italic*, `code`"></textarea>
+          <span class="muted small" id="desc-counter">0 / 2000</span>
+        </label>
+        <div class="form-actions">
+          <button class="btn primary" id="project-submit" type="submit">Add project</button>
+          <button class="btn ghost" id="cancel-edit" type="button" hidden>Cancel edit</button>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <h2 class="section-title">Your projects</h2>
+      <div id="my-grid" class="grid"><p class="muted">Loading…</p></div>
+    </section>
+
+    <section class="card profile-card">
+      <h2>Profile</h2>
+      <p class="muted small">This is what others see next to your projects in the showcase.</p>
+      <form id="profile-form">
+        <div class="row">
+          <label>Display name
+            <input id="display_name" type="text" maxlength="60" placeholder="e.g. Ada Lovelace">
+          </label>
+          <div class="avatar-block">
+            <span class="lbl-like">Avatar</span>
+            <div id="avatar-picker" class="avatar-pick"></div>
+          </div>
+        </div>
+        <label>Bio
+          <textarea id="bio" rows="3" maxlength="500" placeholder="Tell the community about yourself…"></textarea>
+        </label>
+        <div class="form-actions">
+          <button class="btn primary" type="submit">Save profile</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card account-card">
+      <h2>Account</h2>
+      <div class="account-grid">
+        <form id="password-form" class="account-box">
+          <h3>🔑 Change password</h3>
+          <label>Current password
+            <input id="cur-pass" type="password" required autocomplete="current-password">
+          </label>
+          <label>New password
+            <input id="new-pass" type="password" required minlength="6" autocomplete="new-password">
+          </label>
+          <button class="btn ghost" type="submit">Update password</button>
+        </form>
+        <div class="account-box">
+          <h3>💾 Your data</h3>
+          <p class="muted small">Download everything the hub stores about you as JSON.</p>
+          <a class="btn ghost" href="/api/me/export" download>Export my data</a>
+        </div>
+        <form id="delete-form" class="account-box danger-box">
+          <h3>🗑️ Danger zone</h3>
+          <p class="muted small">Deleting your account removes all your projects, comments and likes. This cannot be undone.</p>
+          <label>Confirm with your password
+            <input id="del-pass" type="password" required autocomplete="current-password">
+          </label>
+          <button class="btn danger" type="submit">Delete my account forever</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>DevHub · <a href="/">community showcase</a> · <a href="/docs">API docs</a></span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
