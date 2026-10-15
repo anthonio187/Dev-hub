@@ -1,6 +1,6 @@
-# DevX — the X (Twitter) clone for developers
+# DevX — the social network for developers
 
-A full-stack social network for developers, modeled on X: posts with code snippets,
+A full-stack social network for developers, built for developers: posts with code snippets,
 replies, reposts, quote posts, likes, bookmarks, follows, a home timeline, profile tabs,
 explore/trends, search, notifications, and direct messages with image uploads.
 
@@ -25,7 +25,7 @@ explore/trends, search, notifications, and direct messages with image uploads.
 | Repo previews | Posts that link a GitHub repo show a live card (stars, language, description), cached 24h |
 | Availability | "Open to work" badge and "Available for…" text on your profile |
 | Developers directory | `/devs`: browse developers, filter by tech stack, show only people open to work |
-| UX | X-style three-column layout, mobile bottom bar, dark/light theme, keyboard shortcuts (`n` new post, `/` search) |
+| UX | three-column layout, mobile bottom bar, dark/light theme, keyboard shortcuts (`n` new post, `/` search) |
 
 Security: passwords hashed (Werkzeug), CSRF guard on all mutating API calls (requires `X-Requested-With`),
 strict Content-Security-Policy, uploads validated by file signature (PNG/JPEG/GIF/WEBP only, 5 MB max),
@@ -88,7 +88,7 @@ DevX/
 ├── gunicorn.conf.py    # production server settings
 ├── db.py               # Postgres (Neon) / SQLite layer
 ├── templates/index.html# SPA shell
-├── static/style.css    # X-style theme (dark + light)
+├── static/style.css    # DevX theme (dark + light)
 ├── static/app.js       # Frontend: router, composer, feeds, DMs, settings
 ├── tests/test_api.py   # API tests
 ├── tests/test_dev.py   # developer-integration tests (offline, mocked)

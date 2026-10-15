@@ -1,4 +1,4 @@
-"""DevX — a developer-focused X (Twitter) clone.
+"""DevX — a developer-focused social network: code, projects, collaboration and messaging.
 
 Flask backend + vanilla JS single-page frontend.
 Postgres (Neon) when DATABASE_URL is set, SQLite for local development.

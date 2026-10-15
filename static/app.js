@@ -291,13 +291,13 @@
 
   // ------------------------------------------------------------ post actions
   function bumpCount(id, field, delta) {
-    const el = document.querySelector(`article.tweet[data-pid="${id}"]`);
+    const el = document.querySelector(`article.post-card[data-pid="${id}"]`);
     if (!el || !el._item) return;
     patchPost(id, { [field]: Math.max(0, (el._item.post[field] || 0) + delta) });
   }
 
   function patchPost(id, changes) {
-    for (const el of document.querySelectorAll(`article.tweet[data-pid="${id}"]`)) {
+    for (const el of document.querySelectorAll(`article.post-card[data-pid="${id}"]`)) {
       const item = el._item;
       const next = { ...item, post: { ...item.post, ...changes } };
       el.replaceWith(postCard(next, { detail: el.classList.contains("detail") }));
@@ -329,7 +329,7 @@
       const on = !p.bookmarked;
       await api(`/api/posts/${p.id}/bookmark`, { method: on ? "POST" : "DELETE" });
       if (!on && location.pathname === "/bookmarks") {
-        document.querySelectorAll(`article.tweet[data-pid="${p.id}"]`).forEach((el) => el.remove());
+        document.querySelectorAll(`article.post-card[data-pid="${p.id}"]`).forEach((el) => el.remove());
       } else {
         patchPost(p.id, { bookmarked: on });
       }
@@ -343,7 +343,7 @@
       await api(`/api/posts/${p.id}`, { method: "DELETE" });
       toast("Post deleted");
       if (location.pathname === `/post/${p.id}`) return navigate("/");
-      document.querySelectorAll(`article.tweet[data-pid="${p.id}"]`).forEach((el) => el.remove());
+      document.querySelectorAll(`article.post-card[data-pid="${p.id}"]`).forEach((el) => el.remove());
     } catch (e) { toast(e.message, "error"); }
   }
 
@@ -383,7 +383,7 @@
   // ------------------------------------------------------------ post card
   function postCard(item, { detail = false } = {}) {
     const p = item.post;
-    const card = h("article", { class: "tweet" + (detail ? " detail" : ""), "data-pid": p.id, tabindex: "0" });
+    const card = h("article", { class: "post-card" + (detail ? " detail" : ""), "data-pid": p.id, tabindex: "0" });
     card._item = item;
 
     if (item.kind === "repost" && item.by) {
@@ -392,8 +392,8 @@
     }
 
     const repoSlot = h("div");
-    const main = h("div", { class: "tweet-main" },
-      h("div", { class: "tweet-head" },
+    const main = h("div", { class: "post-card-main" },
+      h("div", { class: "post-card-head" },
         h("a", { class: "name", href: "/u/" + p.author.username }, p.author.display_name),
         h("span", { class: "handle" }, " @" + p.author.username),
         h("span", { class: "muted" }, " · "),
@@ -403,7 +403,7 @@
         postMenu(p)),
       p.reply_to_username ? h("div", { class: "reply-to" }, "Replying to ",
         h("a", { href: "/u/" + p.reply_to_username }, "@" + p.reply_to_username)) : null,
-      p.body ? linkify(p.body, h("div", { class: "tweet-body" })) : null,
+      p.body ? linkify(p.body, h("div", { class: "post-card-body" })) : null,
       p.code ? codeBlock(p.code, p.code_lang) : null,
       mediaGrid((p.attachments || []).filter((a) => a.kind === "image").map((a) => a.url)),
       fileChips(p.attachments),
@@ -412,7 +412,7 @@
       detail ? h("div", { class: "time-full" }, fullDate(p.created_at)) : null,
       actionBar(p));
 
-    card.append(h("div", { class: "tweet-row" }, avatar(p.author, 40), main));
+    card.append(h("div", { class: "post-card-row" }, avatar(p.author, 40), main));
     repoPreviewFor(p.body, repoSlot);
     if (!detail) {
       card.addEventListener("click", (e) => {
@@ -1034,7 +1034,7 @@
     main.append(head("Home"));
     main.append(h("section", { class: "hero" },
       h("h2", { class: "big" }, "Where developers ", h("span", { style: { color: "var(--blue)" } }, "ship in public.")),
-      h("p", {}, "Share code snippets, post your progress, reply, repost and message other developers — the X-style network built for builders.")));
+      h("p", {}, "Share code snippets, post your progress, reply, repost and message other developers — the social network built for builders.")));
     main.append(authCard("signup"));
     main.append(h("div", { class: "section-title" }, "Latest from the community"));
     const f = feed((next) => api(withCursor("/api/explore", next)), { empty: "Nothing posted yet. Sign up and be first!" });
