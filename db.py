@@ -1,11 +1,15 @@
-"""Tiny DB layer: SQLite locally, Postgres when DATABASE_URL is set (Render)."""
+"""Database layer: Postgres (Neon) when DATABASE_URL is set, SQLite otherwise.
+
+All queries are written with '?' placeholders; they are translated to '%s'
+automatically for Postgres. Every table has an integer `id` primary key so
+inserts can always return the new id.
+"""
 
 import os
-import re
 import sqlite3
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SQLITE_PATH = os.environ.get("SQLITE_PATH") or os.path.join(BASE_DIR, "devhub.db")
+SQLITE_PATH = os.environ.get("SQLITE_PATH") or os.path.join(BASE_DIR, "devx.db")
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 if DATABASE_URL.startswith("postgres://"):
@@ -20,13 +24,10 @@ if IS_PG:
 else:
     IntegrityError = (sqlite3.IntegrityError,)
 
-_NAMED = re.compile(r"(?<![:\w]):([A-Za-z_]\w*)")
-
 
 def translate(sql: str) -> str:
-    """sqlite-style SQL (? and :name params) -> psycopg style."""
+    """SQLite-style SQL (? placeholders) -> psycopg style."""
     sql = sql.replace("%", "%%")
-    sql = _NAMED.sub(r"%(\1)s", sql)
     return sql.replace("?", "%s")
 
 
@@ -34,7 +35,7 @@ def adapt_schema(sql: str) -> str:
     if not IS_PG:
         return sql
     sql = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
-    return sql.replace(" COLLATE NOCASE", "")
+    return sql.replace(" BLOB", " BYTEA")
 
 
 class _Cursor:
@@ -48,9 +49,6 @@ class _Cursor:
     def fetchall(self):
         return self._cur.fetchall()
 
-    def __iter__(self):
-        return iter(self._cur.fetchall())
-
 
 class Conn:
     def __init__(self):
@@ -62,6 +60,7 @@ class Conn:
             self.raw.execute("PRAGMA foreign_keys = ON")
 
     def execute(self, sql, params=()):
+        params = tuple(params)
         if not IS_PG:
             cur = self.raw.execute(sql, params)
             return _Cursor(cur, cur.lastrowid)
@@ -76,44 +75,21 @@ class Conn:
             lastrowid = row["id"] if row else None
         return _Cursor(cur, lastrowid)
 
+    def script(self, statements):
+        for stmt in statements:
+            stmt = adapt_schema(stmt.strip())
+            if stmt:
+                self.raw.execute(stmt)
+        self.commit()
+
     def commit(self):
         self.raw.commit()
+
+    def rollback(self):
+        self.raw.rollback()
 
     def close(self):
         try:
             self.raw.close()
-        except Exception:
+        except Exception:  # pragma: no cover
             pass
-
-
-def connect() -> Conn:
-    return Conn()
-
-
-def init_schema(schema_sql: str, migrations) -> None:
-    """Create tables + apply (table, column, ddl) migrations. Safe to run many times."""
-    schema_sql = adapt_schema(schema_sql)
-    statements = [s.strip() for s in schema_sql.split(";") if s.strip()]
-    if IS_PG:
-        with psycopg.connect(DATABASE_URL, autocommit=True) as conn:
-            conn.execute("SELECT pg_advisory_lock(727274)")
-            try:
-                for stmt in statements:
-                    conn.execute(stmt)
-                conn.execute(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower "
-                    "ON users (lower(username))")
-                for table, col, ddl in migrations:
-                    conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {ddl}")
-            finally:
-                conn.execute("SELECT pg_advisory_unlock(727274)")
-        return
-    conn = sqlite3.connect(SQLITE_PATH)
-    for stmt in statements:
-        conn.execute(stmt)
-    for table, col, ddl in migrations:
-        cols = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
-        if col not in cols:
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {ddl}")
-    conn.commit()
-    conn.close()

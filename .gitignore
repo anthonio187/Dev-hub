@@ -1,9 +1,10 @@
 __pycache__/
 *.pyc
-devhub.db
-.secret_key
 .venv/
 venv/
 .env
+.secret_key
 *.db
+.pytest_cache/
+e2e-shots/
 .DS_Store

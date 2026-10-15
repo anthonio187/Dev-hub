@@ -1,164 +1,125 @@
-# ⌨️ DevHub — a project hub for developers
+# DevX — the X (Twitter) clone for developers
 
-DevHub is a full-stack web app where developers create an account, add the
-projects they're building, follow each other, and showcase everything in a
-public community feed.
+A full-stack social network for developers, modeled on X: posts with code snippets,
+replies, reposts, quote posts, likes, bookmarks, follows, a home timeline, profile tabs,
+explore/trends, search, notifications, and direct messages with image uploads.
 
-**Stack:** Python (Flask) · Postgres (SQLite for local dev) · vanilla HTML/CSS/JS — no build step.
+**Stack:** Python (Flask) · Postgres on Neon (SQLite for local dev) · vanilla JS SPA, no build step.
 
-## ✨ Features (40+)
+## Features
 
-**Accounts**
-1. 🔐 Sign up / log in / log out (hashed passwords, session cookies)
-2. 🔑 Change password
-3. 🗑️ Delete account (password-confirmed, cascades all data)
-4. 💾 Export all your data as JSON
-5. 😀 Emoji avatar picker
+| Area | What works |
+|---|---|
+| Accounts | Sign up, log in, log out, change password, delete account, session cookies, rate limiting on login/signup |
+| Profile | Display name, bio, location, website, **tech stack chips**, avatar + banner image uploads, followers/following lists |
+| Posts | 280-character posts, **code snippets** (20+ languages, copy button), up to 4 images, hashtags, @mentions |
+| Interactions | Reply (threaded view), repost / undo, quote post, like / unlike, bookmark, copy link, delete own post |
+| Timeline | "For you" (everyone) and "Following" tabs, cursor pagination ("Show more" + infinite scroll) |
+| Profiles | Posts, Replies, Media, Likes tabs |
+| Discovery | Explore (latest), Trends (7-day hashtags), Who to follow, search for posts / people / hashtags |
+| Notifications | Likes, reposts, replies, quotes, mentions, follows; unread badge; mark all read |
+| Messages | Start a conversation by username, send text and **image** messages, unread counts, load older messages, live updates (polls every 3s) |
+| Developer accounts | Link **GitHub** (verified by adding a code to your bio), **GitLab**, **DEV Community** and **npm** (public profiles, no OAuth app needed) |
+| GitHub profile | Followers, repos, total stars, top languages, top repos (refreshed every 6h, last good data kept on failure) |
+| Other platforms | GitLab top projects, DEV articles, npm packages you maintain |
+| Repo previews | Posts that link a GitHub repo show a live card (stars, language, description), cached 24h |
+| Availability | "Open to work" badge and "Available for…" text on your profile |
+| Developers directory | `/devs`: browse developers, filter by tech stack, show only people open to work |
+| UX | X-style three-column layout, mobile bottom bar, dark/light theme, keyboard shortcuts (`n` new post, `/` search) |
 
-**Projects**
-6. 📁 Full project CRUD from your dashboard
-7. 🖼️ Cover images per project
-8. 📊 Progress tracker (0–100% slider + progress bars)
-9. 💡🚧🚀 Status badges (Idea / In progress / Shipped)
-10. 📌 Pin projects to the top of your list
-11. ✍️ Markdown-lite descriptions (**bold**, *italic*, `code`, links)
-12. 🏷️ Tech-stack chips
-13. 👁️ View counters
-14. 🕒 "Time ago" timestamps + edited markers
+Security: passwords hashed (Werkzeug), CSRF guard on all mutating API calls (requires `X-Requested-With`),
+strict Content-Security-Policy, uploads validated by file signature (PNG/JPEG/GIF/WEBP only, 5 MB max),
+all user text rendered as text (no `innerHTML`).
 
-**Social**
-15. ❤️ Like / unlike projects (one per user, live counts)
-16. 💬 Comments with delete-your-own
-17. 🧑‍🤝‍🧑 Follow developers + "Following only" feed filter
-18. 👤 Public profile pages (`/u/<username>`) with stats
-19. 🏆 Leaderboard (`/leaderboard`) — top devs by likes
-20. 📰 Activity feed (`/activity`) — everything happening on the hub
-21. 🌍 Global community stats strip
-
-**Discovery & UX**
-22. 🔍 Live search (projects, tech, developers)
-23. 🎛️ Status filter + sortable feed (newest / oldest / most liked / most viewed / A–Z)
-24. 🏷️ Click any tech chip to filter the showcase by it
-25. 🔍 Project detail modal — deep-linkable (`/?project=<id>`)
-26. 🔗 Share buttons that copy links
-27. 📄 Load-more pagination
-28. 🌗 Dark/light theme toggle (remembered)
-29. ⌨️ Keyboard shortcuts: `/` search · `N` new project · `?` help · `Esc` close
-30. 📊 Dashboard stats (totals, views, likes received)
-
-**New**
-- 🔖 Bookmark projects + `/saved` page
-- 🔔 Notifications (likes, comments, follows) with unread badge + `/notifications`
-- 🔥 Trending page (`/trending`) and `/api/tags`, `/api/users?q=`
-- 🗺️ `sitemap.xml` + `robots.txt`, DB-aware health check
-
-**Under the hood**
-31. 📡 RSS feed of newest projects (`/feed.xml`)
-32. 📚 Built-in API docs page (`/docs`)
-33. 🚫 Custom 404 page (JSON errors for API routes)
-34. 🛡️ Rate limiting on login/signup
-35. 🔒 Security headers + Content-Security-Policy
-36. 🌱 Demo data seeder (`python seed.py`)
-
-## Quick start
+## Run locally (SQLite)
 
 ```bash
-git clone https://github.com/anthonio187/Dev-hub.git
-cd Dev-hub
 pip install -r requirements.txt
-python app.py          # -> http://localhost:5000
-python seed.py         # optional: load demo users & projects
+python app.py                 # http://localhost:5000
 ```
 
-The SQLite database (`devhub.db`) is created (and old versions migrated)
-automatically. Demo login after seeding: `ada` / `password123`.
+## Developer integrations
+
+- Settings → **Developer accounts**: link a username per platform. GitHub links require ownership
+  verification: DevX gives you a `devx-xxxxxxxx` code, you paste it into your GitHub bio, then click *Verify*.
+- The code is removed after verification, and a GitHub account can only be verified by one DevX profile.
+- Optional: set `GITHUB_TOKEN` (a token with **no scopes**) to raise GitHub's API limit from 60 to 5,000 requests/hour.
+- Stack Overflow is not included yet; its API requires a registered app key.
+
+## Use Neon (Postgres) — recommended for production
+
+1. Create a project at https://neon.tech and copy the connection string.
+2. Set the environment variable (don't commit it):
+
+   ```bash
+   export DATABASE_URL="postgresql://USER:PASSWORD@ep-xxxx.region.aws.neon.tech/neondb?sslmode=require"
+   export SECRET_KEY="$(python -c 'import secrets;print(secrets.token_hex(32))')"
+   export PRODUCTION=1
+   python app.py
+   ```
+
+The tables are created automatically on first start (`CREATE TABLE IF NOT EXISTS`), so no migration step is needed.
+
+Deploy anywhere that runs a Procfile (Render, Railway, Heroku-style hosts): set the same three variables and the
+start command is `gunicorn app:app -c gunicorn.conf.py` (the Procfile already does this).
+
+## Tests
+
+```bash
+pip install pytest
+pytest -q                     # 36 API + developer-integration tests (SQLite by default)
+DATABASE_URL=postgresql://... pytest -q     # same suite against Postgres / Neon
+```
+
+Browser test (two users interacting, DMs with images, live updates, mobile layout):
+
+```bash
+pip install playwright && python -m playwright install chromium
+python app.py &                # on a fresh database (delete devx.db first)
+BASE_URL=http://localhost:5000 python tests/e2e_browser.py
+```
 
 ## Project structure
 
 ```
-Dev-hub/
-├── app.py               # Flask app: pages + JSON API
-├── db.py                # SQLite/Postgres layer
-├── render.yaml          # Render blueprint
+DevX/
+├── app.py              # Flask app: JSON API, media, auth, feeds, DMs, developer routes
+├── devint.py           # GitHub / GitLab / DEV / npm clients (timeouts, error mapping)
+├── gunicorn.conf.py    # production server settings
+├── db.py               # Postgres (Neon) / SQLite layer
+├── templates/index.html# SPA shell
+├── static/style.css    # X-style theme (dark + light)
+├── static/app.js       # Frontend: router, composer, feeds, DMs, settings
+├── tests/test_api.py   # API tests
+├── tests/test_dev.py   # developer-integration tests (offline, mocked)
+├── tests/e2e_browser.py# Browser end-to-end test
+├── requirements.txt
 ├── Procfile
-├── seed.py              # Optional demo data loader
-├── requirements.txt     # pip dependencies (Flask only)
-├── templates/           # Landing, dashboard, profile, leaderboard, activity, docs, 404
-├── static/
-│   ├── style.css        # Dark neon theme + light mode
-│   └── app.js           # Frontend logic (all pages)
-└── .gitignore
+└── .env.example
 ```
 
-Runtime files created automatically (not shipped): `devhub.db`, `.secret_key`.
+## API overview
 
-## API reference
+All JSON. Mutating requests need the header `X-Requested-With: XMLHttpRequest`.
 
-Full interactive reference lives at **`/docs`** in the running app. Auth uses
-the session cookie set by signup/login. All endpoints return JSON.
+- `POST /api/auth/signup` · `POST /api/auth/login` · `POST /api/auth/logout` · `GET /api/auth/me`
+- `PATCH /api/me` · `DELETE /api/me` · `POST /api/auth/password` · `POST /api/media` · `GET /media/<id>`
+- `POST /api/posts` · `GET /api/posts/<id>` · `GET /api/posts/<id>/replies` · `DELETE /api/posts/<id>`
+- `POST|DELETE /api/posts/<id>/like|repost|bookmark` · `GET /api/bookmarks`
+- `GET /api/timeline` · `GET /api/explore` · `GET /api/trends` · `GET /api/who-to-follow` · `GET /api/search?q=`
+- `GET /api/users/<username>` · `GET /api/users/<username>/posts?tab=` · `POST|DELETE /api/users/<username>/follow`
+- `GET /api/users/<username>/followers|following`
+- `GET /api/notifications` · `POST /api/notifications/read` · `GET /api/counts`
+- `GET /api/conversations` · `POST /api/conversations` · `GET|POST /api/conversations/<id>/messages`
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/health` | — | Health check |
-| GET | `/api/stats` | — | Global stats |
-| POST | `/api/signup` | — | Create account |
-| POST | `/api/login` | — | Log in |
-| POST | `/api/logout` | ✓ | Log out |
-| GET/PUT | `/api/me` | ✓ for PUT | Profile; PUT updates name/bio/avatar |
-| PUT | `/api/me/password` | ✓ | Change password |
-| DELETE | `/api/me` | ✓ | Delete account (password confirm) |
-| GET | `/api/me/export` | ✓ | Download your data |
-| GET | `/api/me/following` | ✓ | Who you follow |
-| GET | `/api/projects` | — | Showcase feed |
-| GET | `/api/my/projects` | ✓ | Your projects |
-| POST | `/api/projects` | ✓ | Create project |
-| GET | `/api/projects/<id>` | — | Detail (+1 view) |
-| PUT/DELETE | `/api/projects/<id>` | ✓ | Update / delete yours |
-| POST | `/api/projects/<id>/like` | ✓ | Toggle like |
-| POST | `/api/projects/<id>/pin` | ✓ | Toggle pin |
-| GET/POST | `/api/projects/<id>/comments` | ✓ for POST | Comments |
-| DELETE | `/api/comments/<id>` | ✓ | Delete your comment |
-| GET | `/api/users/<username>` | — | Public profile |
-| POST | `/api/users/<username>/follow` | ✓ | Toggle follow |
-| GET | `/api/leaderboard` | — | Top developers |
-| GET | `/api/activity` | — | Activity feed |
-| GET | `/feed.xml` | — | RSS of new projects |
+## DevHub feature additions
 
-Example:
+- **Accounts:** email required at sign-up (unique), log in with username or email, password reset by email (1-hour single-use link, `/forgot` and `/reset`), email and LinkedIn in settings.
+- **Posts:** edit your own posts (marked "edited"); attach images and documents (PDF, ZIP, text and source files up to 10 MB, downloaded as attachments).
+- **Messages:** send images or files; file attachments download; new-message notifications link to the conversation.
+- **Projects:** create, edit, and delete portfolio projects with tags, status, repo and live links, and a screenshot. Browse and filter by tag/status, like projects, see likes notify the owner, and view possible collaborators who share a tag.
+- **Collaboration:** post open requests with skills and goals (optionally linked to a project), express interest, withdraw, and let the owner accept or decline. Status is tracked on both the request and each interest. Notifications link to the request.
+- **Search:** finds projects too; posts can be filtered by language (`/search?q=…&lang=rust`).
+- **Storage:** set `S3_BUCKET` and the S3 variables to store uploads in R2, S3, or Supabase Storage. `boto3` is needed only then.
 
-```bash
-curl -c cookies.txt -X POST http://localhost:5000/api/signup \
-  -H "Content-Type: application/json" \
-  -d '{"username": "dev_queen", "password": "secret123"}'
-
-curl -b cookies.txt -X POST http://localhost:5000/api/projects \
-  -H "Content-Type: application/json" \
-  -d '{"name": "DevHub", "tech": "Python, Flask", "status": "shipped", "progress": 100}'
-```
-
-## Deploying on Render
-
-1. Push this folder to GitHub.
-2. Render → **New → Blueprint** → select the repo. `render.yaml` creates the
-   web service + a free Postgres database and wires `DATABASE_URL`,
-   `SECRET_KEY` automatically.
-3. Deploy. Demo data loads on first start (`SEED_DEMO=true`; set to `false` to disable).
-   Demo login: `ada` / `password123`.
-
-Manual setup instead: create a Postgres DB, then a Web Service with
-build `pip install -r requirements.txt`, start
-`gunicorn app:app --workers 2 --threads 4 --bind 0.0.0.0:$PORT`, and env vars
-`DATABASE_URL` (internal URL), `SECRET_KEY` (random string).
-
-Notes: free Render Postgres expires after 30 days — upgrade or export
-data (`/api/me/export`) before then. Without `DATABASE_URL` the app uses
-local SQLite (`devhub.db`), which Render wipes on redeploy.
-
-## Troubleshooting
-
-- **Images from the internet don't load in an in-app preview?** Sandboxed
-  previews may block network requests; the app is fine in a real browser.
-  Demo covers are embedded SVGs, so they always work.
-- **"That username is already taken"** — usernames are unique (case-insensitive).
-- **Too many attempts error** — rate limiting kicked in; wait a few minutes.
-- **Reset everything** — stop the server and delete `devhub.db`.
+Tests: `pytest -q` (55 tests; `tests/test_features.py` covers the new features with a fake S3 client). Browser E2E: `BASE_URL=http://localhost:5056 python tests/e2e_browser.py` (15 steps).
