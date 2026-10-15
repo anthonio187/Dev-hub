@@ -390,6 +390,20 @@ def test_notifications_mentions_filter(client, factory):
     assert mentions and all(n["type"] == "mention" for n in mentions)
 
 
+def test_app_icons_and_manifest_are_served(client):
+    html = client.get("/").get_data(as_text=True)
+    for link in ("/static/icons/favicon.ico", "/static/icons/apple-touch-icon.png",
+                 "/static/icons/manifest.webmanifest"):
+        assert link in html, link
+    for path in ("/static/icons/icon-192.png", "/static/icons/icon-512.png",
+                 "/static/icons/apple-touch-icon.png", "/static/icons/favicon-32.png",
+                 "/static/icons/favicon.ico"):
+        r = client.get(path)
+        assert r.status_code == 200 and len(r.get_data()) > 100, path
+    m = client.get("/static/icons/manifest.webmanifest").get_json(force=True)
+    assert m["name"] == "DevX" and any(i["sizes"] == "512x512" for i in m["icons"])
+
+
 # -------------------------------------------------------------------- DMs
 def test_direct_messages_with_images_and_unread(client, factory):
     alice, a = new_user(factory)
