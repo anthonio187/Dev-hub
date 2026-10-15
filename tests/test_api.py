@@ -378,6 +378,18 @@ def test_notifications_read_and_counts(client, factory):
     assert alice.get("/api/counts").get_json()["notifications"] == 0
 
 
+def test_notifications_mentions_filter(client, factory):
+    alice, a = new_user(factory)
+    bob, b = new_user(factory)
+    pid = alice.post("/api/posts", json={"body": "ping"}, headers=HDR).get_json()["post"]["id"]
+    bob.post(f"/api/posts/{pid}/like", headers=HDR)  # a 'like' notification for alice
+    bob.post("/api/posts", json={"body": f"hey @{a} look"}, headers=HDR)  # a 'mention' notification for alice
+    everything = alice.get("/api/notifications").get_json()["items"]
+    assert {n["type"] for n in everything} >= {"like", "mention"}
+    mentions = alice.get("/api/notifications?kind=mentions").get_json()["items"]
+    assert mentions and all(n["type"] == "mention" for n in mentions)
+
+
 # -------------------------------------------------------------------- DMs
 def test_direct_messages_with_images_and_unread(client, factory):
     alice, a = new_user(factory)

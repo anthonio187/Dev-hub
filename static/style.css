@@ -450,3 +450,37 @@ html[data-theme="light"] .card-item:hover { background: rgba(0,0,0,.03); }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .link-btn.forgot { display: block; margin: 10px 0 0; }
 .card-item .row, .project-detail .row { align-items: center; }
+
+/* ---------- Phone chrome: five-tab bar, floating compose, hide-on-scroll, 44px targets ---------- */
+.menu-avatar, .mobile-brand { display: none; }
+
+@media (max-width: 700px) {
+  .icon-btn { min-width: 44px; min-height: 44px; width: 44px; height: 44px; }
+  .menu-avatar { display: inline-flex; align-items: center; justify-content: center; }
+  .head-row { gap: 8px; padding: 6px 12px; }
+
+  /* Home header: centered brand, no big title, like X's logo bar */
+  .center-head.is-home .head-title { display: none; }
+  .center-head.is-home .mobile-brand { flex: 1; justify-content: center; }
+  .center-head.is-home .spacer { display: none; }
+  .mobile-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; color: var(--text); text-decoration: none; }
+  .mobile-brand .logo-mark { width: 30px; height: 30px; font-size: 13px; }
+
+  /* Bottom bar: five core destinations, each a 44px+ target */
+  .sidebar { transition: transform .22s ease; }
+  .sidebar .nav-item { min-height: 48px; min-width: 44px; padding: 8px 0; }
+  .sidebar .nav-item.nav-more { display: none; }
+
+  /* Floating compose button sits above the bar, like X */
+  .sidebar .mobile-post {
+    position: fixed; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom));
+    width: 56px; height: 56px; min-width: 56px; padding: 0; border-radius: 50%;
+    display: grid !important; place-items: center; font-size: 0;
+    box-shadow: 0 6px 18px rgba(29, 155, 240, .45); z-index: 60;
+  }
+
+  /* Hide the bar (and the compose button with it) while scrolling down */
+  body.nav-hidden .sidebar { transform: translateY(calc(100% + 40px)); }
+  body.nav-hidden .sidebar .mobile-post { transform: none; }
+}
+

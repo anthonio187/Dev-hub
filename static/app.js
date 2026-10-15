@@ -619,10 +619,22 @@
     ["profile", "Profile", null, "user"],
   ];
 
+  // On phones the bottom bar keeps five core destinations; the rest live in the header menu.
+  const MOBILE_MORE = new Set(["projects", "collab", "bookmarks", "profile"]);
+
+  // Phone bar hides while scrolling down and returns on scroll up (CSS applies it only on small screens).
+  let lastScrollY = 0;
+  window.addEventListener("scroll", () => {
+    const y = Math.max(0, window.scrollY);
+    const d = y - lastScrollY;
+    if (y <= 60) { document.body.classList.remove("nav-hidden"); lastScrollY = y; return; }
+    if (Math.abs(d) > 8) { document.body.classList.toggle("nav-hidden", d > 0); lastScrollY = y; }
+  }, { passive: true });
+
   function leftNav(active) {
     const items = NAV.filter(([key]) => state.me || key === "home" || key === "explore" || key === "devs" || key === "projects" || key === "collab").map(([key, label, path, ic, badge]) => {
       const href = key === "profile" ? "/u/" + state.me.username : path;
-      return h("a", { class: "nav-item" + (active === key ? " active" : ""), href, "aria-label": label, title: label },
+      return h("a", { class: "nav-item" + (active === key ? " active" : "") + (MOBILE_MORE.has(key) ? " nav-more" : ""), href, "aria-label": label, title: label },
         icon(ic, 26), h("span", { class: "label" }, label),
         badge ? h("span", { class: "badge" + (badge === "messages" ? " msg" : ""), "data-badge": badge, hidden: true }) : null);
     });
@@ -687,11 +699,26 @@
     return { main, alive: () => token === state.navId };
   }
 
+  function phoneMenu(anchor) {
+    const me = state.me;
+    openMenu(anchor, [
+      { label: "Profile", icon: "user", onClick: () => navigate("/u/" + me.username) },
+      { label: "Projects", icon: "folder", onClick: () => navigate("/projects") },
+      { label: "Collaborate", icon: "users", onClick: () => navigate("/collab") },
+      { label: "Bookmarks", icon: "bookmark", onClick: () => navigate("/bookmarks") },
+      { label: "Settings", icon: "settings", onClick: () => navigate("/settings") },
+      { label: "Log out", icon: "logout", onClick: logout },
+    ]);
+  }
+
   function head(title, { back = false, right = null, tabs = null, sub = null, search = false } = {}) {
-    return h("header", { class: "center-head" },
+    const isHome = title === "Home";
+    return h("header", { class: "center-head" + (isHome ? " is-home" : "") },
       h("div", { class: "head-row" },
         back ? h("button", { class: "icon-btn plain", type: "button", title: "Back", "aria-label": "Back", onclick: () => (history.length > 1 ? history.back() : navigate("/")) }, icon("back", 20)) : null,
+        !back && state.me ? h("button", { class: "icon-btn plain menu-avatar", type: "button", "aria-label": "Account menu", onclick: (e) => phoneMenu(e.currentTarget) }, avatar(state.me, 32)) : null,
         h("div", { class: "head-title" }, h("h1", {}, title), sub ? h("div", { class: "muted small" }, sub) : null),
+        isHome ? h("a", { class: "mobile-brand", href: "/", "aria-label": "DevX home" }, h("span", { class: "logo-mark" }, "</>"), h("span", {}, "DevX")) : null,
         search ? null : h("span", { class: "spacer" }),
         right),
       tabs);
@@ -1069,7 +1096,9 @@
         try { await api("/api/notifications/read", { method: "POST" }); refreshCounts(); toast("All caught up"); } catch (e) { toast(e.message, "error"); }
       },
     }, "Mark all read");
-    main.append(head("Notifications", { right: markBtn }));
+    let kind = "all";
+    const tabsHolder = h("div");
+    main.append(head("Notifications", { right: markBtn, tabs: tabsHolder }));
     const verbs = { like: "liked your post", repost: "reposted your post", reply: "replied to your post", quote: "quoted your post", mention: "mentioned you", follow: "followed you", message: "sent you a message", project_like: "liked your project", collab_interest: "wants to collaborate on your request", collab_status: "responded to your collaboration interest" };
     const icons = { like: "heart", repost: "repeat", reply: "reply", quote: "edit", mention: "at", follow: "user", message: "mail", project_like: "heart", collab_interest: "users", collab_status: "users" };
     const renderItem = (n) => {
@@ -1082,7 +1111,9 @@
         h("div", { class: "ico " + n.type }, icons[n.type] === "at" ? h("span", { style: { fontWeight: "900", fontSize: "20px" } }, "@") : icon(icons[n.type] || "bell", 24)),
         text);
     };
-    const f = feed((next) => api(withCursor("/api/notifications", next)), { renderItem, empty: "No notifications yet. Post something!" });
+    const f = feed((next) => api(withCursor("/api/notifications" + (kind === "mentions" ? "?kind=mentions" : ""), next)), { renderItem, empty: "No notifications yet. Post something!" });
+    const drawTabs = () => tabsHolder.replaceChildren(tabBar([["all", "All"], ["mentions", "Mentions"]], kind, (k) => { kind = k; drawTabs(); f.reload(); }));
+    drawTabs();
     main.append(f.el);
     const t = setTimeout(() => { if (alive()) api("/api/notifications/read", { method: "POST" }).then(refreshCounts).catch(() => {}); }, 2000);
     onLeave(() => clearTimeout(t));

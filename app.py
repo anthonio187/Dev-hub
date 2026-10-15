@@ -1515,11 +1515,13 @@ def follow_list(username, kind):
 def list_notifications():
     u = need_user()
     d = db()
+    kind = request.args.get("kind", "")
+    type_clause = " AND n.type = 'mention'" if kind == "mentions" else ""
     rows = d.execute(
         """SELECT n.id, n.type, n.post_id, n.link, n.is_read, n.created_at,
                   a.id AS actor_id, a.username, a.display_name, a.avatar_media_id
            FROM notifications n JOIN users a ON a.id = n.actor_id
-           WHERE n.recipient_id = ? AND n.id < ? ORDER BY n.id DESC LIMIT ?""",
+           WHERE n.recipient_id = ? AND n.id < ?""" + type_clause + """ ORDER BY n.id DESC LIMIT ?""",
         (u["id"], id_before(), PAGE + 1),
     ).fetchall()
     has_more = len(rows) > PAGE
