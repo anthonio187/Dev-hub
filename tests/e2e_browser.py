@@ -86,7 +86,7 @@ def main():
 
         print("3. alice attaches images and posts")
         alice.locator(".composer input[type=file]").set_input_files([png, png2])
-        expect(alice.locator(".thumb")).to_have_count(2)
+        expect(alice.locator(".thumb")).to_have_count(2, timeout=30000)  # R2 uploads are sequential over the network
         expect(alice.locator(".thumb.busy")).to_have_count(0, timeout=10000)
         alice.locator(".composer textarea").first.fill("Look at the layout 🎨")
         alice.locator(".compose-tools .btn.primary").click()
@@ -131,6 +131,7 @@ def main():
         alice.reload()
         expect(alice.locator("[data-badge=notifications]")).to_be_visible(timeout=10000)
         alice.goto(BASE + "/notifications")
+        expect(alice.locator("article.notif").first).to_be_visible(timeout=15000)
         notif_text = alice.locator("article.notif").all_inner_texts()
         joined = "\n".join(notif_text)
         for needle in ("followed you", "liked your post", "replied to your post", "reposted your post", "quoted your post"):
